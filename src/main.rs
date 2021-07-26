@@ -58,26 +58,25 @@ fn run(opts: &Opts) -> io::Result<()> {
         })
         .collect();
 
-    let pieces = hash_pieces(&files)?;
+    let (actual_length, pieces) = hash_pieces(&files)?;
 
-    // There's some kind of bug in this thing somewhere.
+    // Convert this to an error or... something.
     {
-        let total_length: u64 = files.iter().map(|entry| entry.0).sum();
-        let expected_pieces = total_length / PIECE_LENGTH as u64
-            + if total_length % PIECE_LENGTH as u64 == 0 {
+        let expected_length: u64 = files.iter().map(|entry| entry.0).sum();
+        let expected_pieces = expected_length / PIECE_LENGTH as u64
+            + if expected_length % PIECE_LENGTH as u64 == 0 {
                 0
             } else {
                 1
             };
+
+        assert_eq!(actual_length, expected_length, "Wrong length");
         assert_eq!(
             expected_pieces,
             (pieces.len() / 20) as u64,
             "Wrong number of piece hashes"
         );
     }
-
-    // I'm getting the wrong answer here?!
-    // println!("should be zero: {}\nshould be ?: {}", pieces.len() % 20, pieces.len() / 20);
 
     let info = Info {
         name: opts.name.clone(),
@@ -97,11 +96,13 @@ fn run(opts: &Opts) -> io::Result<()> {
     fs::write(&opts.output, &buf)
 }
 
-fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<Vec<u8>> {
+fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<(u64, Vec<u8>)> {
     let mut sources = files.iter().map(|cx| File::open(&cx.1));
     let mut cat = CatRead::new(|| sources.next())?;
     let mut buf = vec![0u8; PIECE_LENGTH].into_boxed_slice();
     let mut pieces = Vec::new();
+
+    let mut total_read = 0;
 
     loop {
         // Using the entire buffer for the last piece
@@ -109,8 +110,9 @@ fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<Vec<u8>> {
         let len = cat.read(&mut buf)?;
         if len > 0 {
             pieces.extend_from_slice(&sha1_sum(&buf[..len])?);
+            total_read += len as u64;
         } else {
-            return Ok(pieces);
+            return Ok((total_read, pieces));
         }
     }
 }
@@ -121,12 +123,4 @@ fn sha1_sum(buf: &[u8]) -> io::Result<Vec<u8>> {
     let mut reader = Cursor::new(buf);
     io::copy(&mut reader, &mut digest)?;
     Ok(digest.finalize().as_slice().into())
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn len_is_correct() {
-        assert_eq!(262144, super::PIECE_LENGTH);
-    }
 }
