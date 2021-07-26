@@ -7,16 +7,38 @@ use std::{
 mod model;
 mod read;
 
-use clap::Clap;
+// use clap::Clap;
 use chrono::Utc;
 use model::Torrent;
 use serde_bytes::ByteBuf;
+use structopt::StructOpt;
 
 use crate::{model::Info, read::CatRead};
 
 const PIECE_LENGTH: usize = 0x40000; // 2 << 12;
 
-#[derive(Clap, Clone, Debug)]
+// #[derive(Clap, Clone, Debug)]
+// #[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
+// struct Opts {
+//     /// the path of either the file or folder being shared
+//     path: String,
+
+//     /// the name of either the file or the folder being shared;
+//     /// advisory; intended to be optional; I'll get around to that
+//     /// eventually.
+//     #[clap(short, long)]
+//     name: String,
+
+//     #[clap(short, long)]
+//     tracker: String,
+
+//     /// the location to save the .torrent to
+//     #[clap(short, long)]
+//     output: String,
+// }
+
+#[derive(Clone, Debug, StructOpt)]
+// #[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
 struct Opts {
     /// the path of either the file or folder being shared
     path: String,
@@ -24,19 +46,20 @@ struct Opts {
     /// the name of either the file or the folder being shared;
     /// advisory; intended to be optional; I'll get around to that
     /// eventually.
-    #[clap(short, long)]
+    #[structopt(short, long)]
     name: String,
 
-    #[clap(short, long)]
+    #[structopt(short, long)]
     tracker: String,
 
     /// the location to save the .torrent to
-    #[clap(short, long)]
+    #[structopt(short, long)]
     output: String,
 }
 
 fn main() {
-    let opts = Opts::parse();
+    // let opts = Opts::parse();
+    let opts = Opts::from_args();
     if let Err(e) = run(&opts) {
         eprintln!("{}", e);
         std::process::exit(1);
