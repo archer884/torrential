@@ -96,8 +96,10 @@ fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<Vec<u8>> {
     let mut pieces = Vec::new();
 
     loop {
-        if cat.read(&mut buf)? > 0 {
-            pieces.extend_from_slice(&sha1_sum(&buf)?);
+        // Using the entire buffer for the last piece causes the last file to be un-download-able.
+        let len = cat.read(&mut buf)?;
+        if len > 0 {
+            pieces.extend_from_slice(&sha1_sum(&buf[..len])?);
         } else {
             return Ok(pieces);
         }
