@@ -41,8 +41,6 @@ pub struct Info {
     pub files: Vec<File>,
 }
 
-
-
 // #[derive(Debug, Deserialize, Serialize)]
 // pub struct Torrent {
 //     info: Info,

@@ -5,40 +5,18 @@ use std::{
 };
 
 mod model;
-mod read;
 
-// use clap::Clap;
+use catread::CatRead;
 use chrono::Utc;
-use model::Torrent;
+use clap::Clap;
 use serde_bytes::ByteBuf;
-use structopt::StructOpt;
 
-use crate::{model::Info, read::CatRead};
+use crate::model::{Info, Torrent};
 
 const PIECE_LENGTH: usize = 0x40000; // 2 << 12;
 
-// #[derive(Clap, Clone, Debug)]
-// #[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
-// struct Opts {
-//     /// the path of either the file or folder being shared
-//     path: String,
-
-//     /// the name of either the file or the folder being shared;
-//     /// advisory; intended to be optional; I'll get around to that
-//     /// eventually.
-//     #[clap(short, long)]
-//     name: String,
-
-//     #[clap(short, long)]
-//     tracker: String,
-
-//     /// the location to save the .torrent to
-//     #[clap(short, long)]
-//     output: String,
-// }
-
-#[derive(Clone, Debug, StructOpt)]
-// #[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
+#[derive(Clap, Clone, Debug)]
+#[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
 struct Opts {
     /// the path of either the file or folder being shared
     path: String,
@@ -46,20 +24,19 @@ struct Opts {
     /// the name of either the file or the folder being shared;
     /// advisory; intended to be optional; I'll get around to that
     /// eventually.
-    #[structopt(short, long)]
+    #[clap(short, long)]
     name: String,
 
-    #[structopt(short, long)]
+    #[clap(short, long)]
     tracker: String,
 
     /// the location to save the .torrent to
-    #[structopt(short, long)]
+    #[clap(short, long)]
     output: String,
 }
 
 fn main() {
-    // let opts = Opts::parse();
-    let opts = Opts::from_args();
+    let opts = Opts::parse();
     if let Err(e) = run(&opts) {
         eprintln!("{}", e);
         std::process::exit(1);
@@ -86,11 +63,19 @@ fn run(opts: &Opts) -> io::Result<()> {
     // There's some kind of bug in this thing somewhere.
     {
         let total_length: u64 = files.iter().map(|entry| entry.0).sum();
-        let expected_pieces = total_length / PIECE_LENGTH as u64 + if total_length % PIECE_LENGTH as u64 == 0 { 0 } else { 1 };
-        assert_eq!(expected_pieces, (pieces.len() / 20) as u64, "Wrong number of piece hashes");
+        let expected_pieces = total_length / PIECE_LENGTH as u64
+            + if total_length % PIECE_LENGTH as u64 == 0 {
+                0
+            } else {
+                1
+            };
+        assert_eq!(
+            expected_pieces,
+            (pieces.len() / 20) as u64,
+            "Wrong number of piece hashes"
+        );
     }
-    
-    
+
     // I'm getting the wrong answer here?!
     // println!("should be zero: {}\nshould be ?: {}", pieces.len() % 20, pieces.len() / 20);
 
@@ -98,10 +83,13 @@ fn run(opts: &Opts) -> io::Result<()> {
         name: opts.name.clone(),
         pieces: ByteBuf::from(pieces),
         piece_length: PIECE_LENGTH as i64,
-        files: files.into_iter().map(|(length, _, path)| model::File {
-            length: length as i64,
-            path: vec![path.display().to_string()],
-        }).collect(),
+        files: files
+            .into_iter()
+            .map(|(length, _, path)| model::File {
+                length: length as i64,
+                path: vec![path.display().to_string()],
+            })
+            .collect(),
     };
 
     let torrent = Torrent::new(opts.tracker.clone(), Utc::now().timestamp(), info);
@@ -110,16 +98,14 @@ fn run(opts: &Opts) -> io::Result<()> {
 }
 
 fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<Vec<u8>> {
-    let initial_reader = File::open(&files[0].1)?;
-
-    // Take back one kadam to honor the Hebrew God, whose Ark this is.
-    let sources = files[1..].iter().map(|x| x.1.as_ref());
-    let mut cat = CatRead::new(initial_reader, sources);
+    let mut sources = files.iter().map(|cx| File::open(&cx.1));
+    let mut cat = CatRead::new(|| sources.next())?;
     let mut buf = vec![0u8; PIECE_LENGTH].into_boxed_slice();
     let mut pieces = Vec::new();
 
     loop {
-        // Using the entire buffer for the last piece causes the last file to be un-download-able.
+        // Using the entire buffer for the last piece
+        // causes the last file to be un-download-able.
         let len = cat.read(&mut buf)?;
         if len > 0 {
             pieces.extend_from_slice(&sha1_sum(&buf[..len])?);

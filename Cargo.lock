@@ -85,6 +85,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "catread"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e586bc370db5711d510f8e7f36f0df006505242dea0655113beee9e8cddd312"
+
+[[package]]
 name = "cc"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,7 +133,7 @@ dependencies = [
 [[package]]
 name = "clap"
 version = "3.0.0-beta.2"
-source = "git+https://github.com/clap-rs/clap#8ff68080e65e70929df030fedf94f28c6f7fe06c"
+source = "git+https://github.com/clap-rs/clap#610d56d1c63042359d6181c89572e894274f4ae7"
 dependencies = [
  "atty",
  "bitflags",
@@ -144,7 +150,7 @@ dependencies = [
 [[package]]
 name = "clap_derive"
 version = "3.0.0-beta.2"
-source = "git+https://github.com/clap-rs/clap#8ff68080e65e70929df030fedf94f28c6f7fe06c"
+source = "git+https://github.com/clap-rs/clap#610d56d1c63042359d6181c89572e894274f4ae7"
 dependencies = [
  "heck",
  "proc-macro-error",
@@ -513,6 +519,7 @@ name = "torrential"
 version = "0.1.1"
 dependencies = [
  "bendy",
+ "catread",
  "chrono",
  "clap 3.0.0-beta.2",
  "serde",
