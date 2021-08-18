@@ -97,8 +97,8 @@ fn run(opts: &Opts) -> io::Result<()> {
 }
 
 fn hash_pieces(files: &[(u64, PathBuf, PathBuf)]) -> io::Result<(u64, Vec<u8>)> {
-    let mut sources = files.iter().map(|cx| File::open(&cx.1));
-    let mut cat = CatRead::new(|| sources.next())?;
+    let sources = files.iter().map(|cx| File::open(&cx.1));
+    let mut cat = CatRead::new(sources)?;
     let mut buf = vec![0u8; PIECE_LENGTH].into_boxed_slice();
     let mut pieces = Vec::new();
 

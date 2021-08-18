@@ -7,10 +7,10 @@ edition = "2018"
 
 [dependencies]
 bendy = { version = "0.3.3", features = ["serde"] }
-catread = "0.1.0"
+catread = "0.2.0"
 chrono = "0.4.19"
 clap = { git = "https://github.com/clap-rs/clap" }
-serde = { version = "1.0.126", features = ["derive"] }
+serde = { version = "1.0.127", features = ["derive"] }
 serde_bencode = "0.2.3"
 serde_bytes = "0.11.5"
 sha-1 = "0.9.7"
