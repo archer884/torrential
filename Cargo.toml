@@ -2,6 +2,9 @@
 name = "torrential"
 version = "0.1.1"
 edition = "2018"
+description = """
+A command line tool for generating .torrent files.
+"""
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

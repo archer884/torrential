@@ -16,7 +16,7 @@ use crate::model::{Info, Torrent};
 const PIECE_LENGTH: usize = 0x40000; // 2 << 12;
 
 #[derive(Clap, Clone, Debug)]
-#[clap(version = clap::crate_version!(), author = clap::crate_authors!())]
+#[clap(version = clap::crate_version!(), about = clap::crate_description!())]
 struct Opts {
     /// the path of either the file or folder being shared
     path: String,
