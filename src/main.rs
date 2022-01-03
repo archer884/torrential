@@ -8,15 +8,15 @@ mod model;
 
 use catread::CatRead;
 use chrono::Utc;
-use clap::Clap;
+use clap::Parser;
 use serde_bytes::ByteBuf;
 
 use crate::model::{Info, Torrent};
 
 const PIECE_LENGTH: usize = 0x40000; // 2 << 12;
 
-#[derive(Clap, Clone, Debug)]
-#[clap(version = clap::crate_version!(), about = clap::crate_description!())]
+#[derive(Clone, Debug, Parser)]
+#[clap(author, version, about)]
 struct Opts {
     /// the path of either the file or folder being shared
     path: String,
